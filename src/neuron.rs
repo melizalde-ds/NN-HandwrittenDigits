@@ -42,6 +42,11 @@ impl Neuron {
     pub fn set_bias(&mut self, bias: f64) {
         self.bias = bias;
     }
+
+    pub fn forward(&self, inputs: &Matrix) -> f64 {
+        let weighted_sum = self.weights.dot(inputs).sum() + self.bias;
+        (self.func)(weighted_sum)
+    }
 }
 
 impl Debug for Neuron {

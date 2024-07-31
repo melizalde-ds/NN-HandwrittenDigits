@@ -43,7 +43,17 @@ impl Matrix {
     }
 
     pub fn dot(&self, other: &Matrix) -> Matrix {
-        assert_eq!(self.cols, other.rows);
+        match self.cols == other.rows {
+            true => (),
+            false => {
+                if self.cols != other.rows {
+                    panic!(
+                        "Matrix dimensions must agree: {}x{} * {}x{}",
+                        self.rows, self.cols, other.rows, other.cols
+                    );
+                }
+            }
+        }
         let mut result = Matrix::new(self.rows, other.cols, None);
         for i in 0..self.rows {
             for j in 0..other.cols {
@@ -63,6 +73,22 @@ impl Matrix {
         for i in 0..self.rows {
             for j in 0..self.cols {
                 result.set(i, j, func(self.get(i, j)));
+            }
+        }
+        result
+    }
+
+    #[allow(dead_code)]
+    pub fn sum(&self) -> f64 {
+        self.data.iter().sum()
+    }
+
+    #[allow(dead_code)]
+    pub fn transpose(&self) -> Matrix {
+        let mut result = Matrix::new(self.cols, self.rows, None);
+        for i in 0..self.rows {
+            for j in 0..self.cols {
+                result.set(j, i, self.get(i, j));
             }
         }
         result
@@ -174,6 +200,15 @@ mod test {
         matrix.set(1, 1, 4.0);
         let matrix2 = matrix.func(|x| x + 1.0);
         assert_eq!(matrix2.data(), &[2.0, 3.0, 4.0, 5.0]);
+    }
+
+    #[test]
+    fn transpose() {
+        let rows = 2;
+        let cols = 2;
+        let matrix = Matrix::new(rows, cols, vec![1.0, 2.0, 3.0, 4.0]);
+        let matrix2 = matrix.transpose();
+        assert_eq!(matrix2.data(), &[1.0, 3.0, 2.0, 4.0]);
     }
 
     #[test]
