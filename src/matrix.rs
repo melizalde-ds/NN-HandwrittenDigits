@@ -9,8 +9,10 @@ pub struct Matrix {
 impl Matrix {
     pub fn new<T: Into<Option<Vec<f64>>>>(rows: usize, cols: usize, data: T) -> Self {
         let data = if let Some(data) = data.into() {
-            assert_eq!(rows * cols, data.len());
-            data
+            match data.len() {
+                len if len == rows * cols => data,
+                _ => vec![0.0; rows * cols],
+            }
         } else {
             vec![0.0; rows * cols]
         };
@@ -92,5 +94,149 @@ impl Debug for Matrix {
             s.push_str("\n");
         }
         write!(f, "{}", s)
+    }
+}
+
+// Test the Matrix struct
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn create_matrix_null() {
+        let rows = 2;
+        let cols = 2;
+        let matrix = Matrix::new(rows, cols, None);
+        assert_eq!(matrix.rows(), rows);
+        assert_eq!(matrix.cols(), cols);
+        assert_eq!(matrix.data(), &[0.0, 0.0, 0.0, 0.0]);
+    }
+
+    #[test]
+    fn create_matrix_data() {
+        let rows = 2;
+        let cols = 2;
+        let data = vec![1.0, 2.0, 3.0, 4.0];
+        let matrix = Matrix::new(rows, cols, Some(data.clone()));
+        assert_eq!(matrix.rows(), rows);
+        assert_eq!(matrix.cols(), cols);
+        assert_eq!(matrix.data(), &data);
+    }
+
+    #[test]
+    fn create_matrix_data_fail() {
+        let rows = 2;
+        let cols = 2;
+        let data = vec![1.0, 2.0, 3.0, 4.0, 5.0];
+        let matrix = Matrix::new(rows, cols, Some(data.clone()));
+        assert_eq!(matrix.rows(), rows);
+        assert_eq!(matrix.cols(), cols);
+        assert_eq!(matrix.data(), &[0.0, 0.0, 0.0, 0.0]);
+    }
+
+    #[test]
+    fn get_set() {
+        let rows = 2;
+        let cols = 2;
+        let mut matrix = Matrix::new(rows, cols, None);
+        matrix.set(0, 0, 1.0);
+        matrix.set(0, 1, 2.0);
+        matrix.set(1, 0, 3.0);
+        matrix.set(1, 1, 4.0);
+        assert_eq!(matrix.get(0, 0), 1.0);
+        assert_eq!(matrix.get(0, 1), 2.0);
+        assert_eq!(matrix.get(1, 0), 3.0);
+        assert_eq!(matrix.get(1, 1), 4.0);
+    }
+
+    #[test]
+    fn dot() {
+        let rows = 2;
+        let cols = 2;
+        let mut matrix = Matrix::new(rows, cols, None);
+        matrix.set(0, 0, 1.0);
+        matrix.set(0, 1, 2.0);
+        matrix.set(1, 0, 3.0);
+        matrix.set(1, 1, 4.0);
+        let matrix2 = Matrix::new(rows, cols, vec![1.0; rows * cols]);
+        let matrix3 = matrix.dot(&matrix2);
+        assert_eq!(matrix3.data(), &[3.0, 3.0, 7.0, 7.0]);
+    }
+
+    #[test]
+    fn func() {
+        let rows = 2;
+        let cols = 2;
+        let mut matrix = Matrix::new(rows, cols, None);
+        matrix.set(0, 0, 1.0);
+        matrix.set(0, 1, 2.0);
+        matrix.set(1, 0, 3.0);
+        matrix.set(1, 1, 4.0);
+        let matrix2 = matrix.func(|x| x + 1.0);
+        assert_eq!(matrix2.data(), &[2.0, 3.0, 4.0, 5.0]);
+    }
+
+    #[test]
+    fn add() {
+        let rows = 2;
+        let cols = 2;
+        let mut matrix = Matrix::new(rows, cols, None);
+        matrix.set(0, 0, 1.0);
+        matrix.set(0, 1, 2.0);
+        matrix.set(1, 0, 3.0);
+        matrix.set(1, 1, 4.0);
+        let matrix2 = matrix + 1.0;
+        assert_eq!(matrix2.data(), &[2.0, 3.0, 4.0, 5.0]);
+    }
+
+    #[test]
+    fn debug() {
+        let rows = 2;
+        let cols = 2;
+        let mut matrix = Matrix::new(rows, cols, None);
+        matrix.set(0, 0, 1.0);
+        matrix.set(0, 1, 2.0);
+        matrix.set(1, 0, 3.0);
+        matrix.set(1, 1, 4.0);
+        assert_eq!(format!("{:?}", matrix), "1 2 \n3 4 \n");
+    }
+
+    #[test]
+    #[should_panic]
+    fn dot_fail() {
+        let rows = 2;
+        let cols = 2;
+        let matrix = Matrix::new(rows, cols, None);
+        let matrix2 = Matrix::new(rows, cols, None);
+        matrix.dot(&matrix2);
+        assert_eq!(matrix.data(), &[1.0, 2.0, 3.0, 4.0]);
+    }
+
+    #[test]
+    #[should_panic]
+    fn add_fail() {
+        let rows = 2;
+        let cols = 2;
+        let matrix = Matrix::new(rows, cols, None);
+        let matrix = matrix + 1.0;
+        assert_eq!(matrix.data(), &[0.0, 0.0, 0.0, 0.0]);
+    }
+
+    #[test]
+    #[should_panic]
+    fn get_fail() {
+        let rows = 2;
+        let cols = 2;
+        let matrix = Matrix::new(rows, cols, None);
+        matrix.get(2, 2);
+    }
+
+    #[test]
+    #[should_panic]
+    fn set_fail() {
+        let rows = 2;
+        let cols = 2;
+        let mut matrix = Matrix::new(rows, cols, None);
+        matrix.set(2, 2, 1.0);
     }
 }

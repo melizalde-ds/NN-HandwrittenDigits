@@ -48,11 +48,3 @@ fn test_matrix() {
     let matrix3 = matrix.dot(&matrix2);
     println!("{:?}", matrix3);
 }
-
-#[allow(dead_code)]
-fn test_neuron() {
-    let weights = Matrix::new(2, 2, vec![1.0; 4]);
-    let bias = 1.0;
-    let neuron = Neuron::new(weights, bias, sigmoid);
-    println!("{:?}", neuron);
-}
